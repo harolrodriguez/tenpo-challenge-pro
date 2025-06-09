@@ -31,7 +31,7 @@ export const MovieCard = ({ movie }: MovieCardProps) => {
           <CalendarDays className="h-4 w-4 mr-1" />
           <span>{movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A'}</span>
         </div>
-        <CardDescription className="text-xs h-10 overflow-hidden text-ellipsis line-clamp-2">
+        <CardDescription className="text-sm h-10 overflow-hidden text-ellipsis line-clamp-2">
           {movie.overview || 'No hay descripción disponible.'}
         </CardDescription>
       </CardContent>
