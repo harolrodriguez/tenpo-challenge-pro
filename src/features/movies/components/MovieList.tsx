@@ -1,8 +1,8 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useMemo } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useInfiniteMovies } from '../hooks/useMovies';
 import { MovieCard } from './MovieCard';
-import type { MovieListCategory } from '../api/tmdb.types';
+import type { Movie, MovieListCategory } from '../api/tmdb.types';
 import { MovieCardSkeleton } from './MovieCardSkeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertTriangle, Loader2 } from 'lucide-react';
@@ -17,7 +17,17 @@ export const MovieList = ({ category }: MovieListProps) => {
 
   const parentRef = useRef<HTMLDivElement>(null);
 
-  const allMovies = data?.pages.flatMap((page) => page.results) ?? [];
+  const allMovies = useMemo(() => {
+    if (!data?.pages) return [];
+    const rawMovies = data.pages.flatMap((page) => page.results);
+    const uniqueMoviesMap = new Map<number, Movie>();
+    rawMovies.forEach((movie) => {
+      if (!uniqueMoviesMap.has(movie.id)) {
+        uniqueMoviesMap.set(movie.id, movie);
+      }
+    });
+    return Array.from(uniqueMoviesMap.values());
+  }, [data]);
 
   const rowVirtualizer = useVirtualizer({
     count: hasNextPage ? allMovies.length + 1 : allMovies.length,
@@ -26,24 +36,19 @@ export const MovieList = ({ category }: MovieListProps) => {
     overscan: 5,
   });
 
+  const virtualItems = rowVirtualizer.getVirtualItems();
+
   useEffect(() => {
-    const [lastItem] = [...rowVirtualizer.getVirtualItems()].reverse();
+    if (!virtualItems.length) return;
+    const lastItem = virtualItems[virtualItems.length - 1];
     if (!lastItem) return;
 
     if (lastItem.index >= allMovies.length - 1 && hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    hasNextPage,
-    fetchNextPage,
-    allMovies.length,
-    isFetchingNextPage,
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    rowVirtualizer.getVirtualItems(),
-  ]);
+  }, [hasNextPage, fetchNextPage, allMovies.length, isFetchingNextPage, virtualItems]);
 
-  if (isLoading) {
+  if (isLoading && !allMovies.length) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
         {Array.from({ length: 10 }).map((_, index) => (
@@ -53,20 +58,21 @@ export const MovieList = ({ category }: MovieListProps) => {
     );
   }
 
-  if (isError && error) {
+  if (isError && error && !allMovies.length) {
+    let errorMessage = 'Ocurrió un problema al intentar obtener los datos.';
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
     return (
       <Alert variant="destructive" className="mt-4">
         <AlertTriangle className="h-4 w-4" />
         <AlertTitle>Error al cargar películas</AlertTitle>
-        <AlertDescription>
-          {error.message ||
-            'Ocurrió un problema al intentar obtener los datos. Por favor, inténtalo de nuevo más tarde.'}
-        </AlertDescription>
+        <AlertDescription>{errorMessage}</AlertDescription>
       </Alert>
     );
   }
 
-  if (!allMovies.length && !hasNextPage && !isLoading) {
+  if (!isLoading && !allMovies.length && !hasNextPage) {
     return (
       <p className="text-center text-muted-foreground mt-8">
         No se encontraron películas para esta categoría.
@@ -84,28 +90,33 @@ export const MovieList = ({ category }: MovieListProps) => {
         }}
       >
         <div
-          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"
+          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 p-1"
           style={{
             position: 'absolute',
             top: 0,
             left: 0,
             width: '100%',
-            transform: `translateY(${rowVirtualizer.getVirtualItems()[0]?.start ?? 0}px)`,
+            transform: `translateY(${virtualItems[0]?.start ?? 0}px)`,
           }}
         >
-          {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-            const isLoaderRow = virtualRow.index > allMovies.length - 1;
+          {virtualItems.map((virtualRow) => {
+            const isLoaderRow = virtualRow.index >= allMovies.length;
             const movie = allMovies[virtualRow.index];
 
             if (isLoaderRow) {
               return (
-                <div key="loader" className="col-span-full flex justify-center items-center py-8">
+                <div
+                  key="loader-item"
+                  className="col-span-full flex justify-center items-center py-8 h-[470px]"
+                >
                   {hasNextPage && <Loader2 className="h-8 w-8 animate-spin text-primary" />}
                 </div>
               );
             }
 
-            if (!movie) return null;
+            if (!movie) {
+              return null;
+            }
 
             return (
               <div
@@ -120,7 +131,16 @@ export const MovieList = ({ category }: MovieListProps) => {
           })}
         </div>
       </div>
-      {!hasNextPage && allMovies.length > 0 && (
+      {isError && error && allMovies.length > 0 && (
+        <Alert variant="destructive" className="mt-4 mx-auto max-w-md">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Error al cargar más películas</AlertTitle>
+          <AlertDescription>
+            {error instanceof Error ? error.message : 'Ocurrió un error.'}
+          </AlertDescription>
+        </Alert>
+      )}
+      {!hasNextPage && allMovies.length > 0 && !isFetchingNextPage && (
         <p className="text-center text-muted-foreground py-8">Has llegado al final de la lista.</p>
       )}
     </div>
