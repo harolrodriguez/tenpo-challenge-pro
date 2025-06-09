@@ -22,14 +22,14 @@ const PrivateLayout = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-background w-screen">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-14 items-center">
+        <div className="container mx-auto flex h-14 items-center justify-between">
           <Link to="/featured" className="mr-6 flex items-center space-x-2">
             <Film className="h-6 w-6 text-primary" />
             <span className="font-bold sm:inline-block text-foreground">TenpoMovies</span>
           </Link>
-          <nav className="flex flex-1 items-center space-x-4 sm:justify-end">
+          <nav className="flex items-center space-x-4 sm:justify-end">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-9 w-9 rounded-full">
@@ -58,11 +58,11 @@ const PrivateLayout = () => {
           </nav>
         </div>
       </header>
-      <main className="flex-1 container py-8">
+      <main className="flex-1 mx-auto container py-8">
         <Outlet />
       </main>
       <footer className="py-6 md:px-8 md:py-0 border-t">
-        <div className="container flex flex-col items-center justify-center gap-4 md:h-24 md:flex-row">
+        <div className="container mx-auto flex flex-col items-center justify-center gap-4 md:h-24 md:flex-row">
           <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
             Desarrollado por Harol Rodriguez para el Challenge Tenpo.
           </p>
