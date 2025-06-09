@@ -13,12 +13,11 @@ axiosInstance.interceptors.request.use(
   (config) => {
     const appToken = useAuthStore.getState().token;
     if (appToken) {
-      config.headers['X-App-Authorization'] = `Bearer ${appToken}`;
+      config.headers['Authorization'] = `Bearer ${appToken}`;
     }
 
     config.params = {
       ...config.params,
-      api_key: env.TMDB_API_KEY,
       language: 'es-ES',
     };
 

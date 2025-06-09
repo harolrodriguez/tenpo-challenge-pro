@@ -60,7 +60,7 @@ export const LoginForm = () => {
   };
 
   return (
-    <Card className="w-full max-w-sm shadow-xl">
+    <Card className="w-full max-w-md min-w-3xs shadow-xl">
       <CardHeader>
         <CardTitle className="text-2xl">Iniciar Sesión</CardTitle>
         <CardDescription>
