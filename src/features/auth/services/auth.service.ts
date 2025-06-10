@@ -6,7 +6,7 @@ export const performFakeLogin = async (
 ): Promise<{ status: number; token: string }> => {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
-      if (email === 'test@tenpo.cl' && pass === 'password123') {
+      if (email.toLowerCase() === 'test@tenpo.cl' && pass === 'password123') {
         const fakeToken = env.TMDB_API_KEY;
         resolve({ status: 200, token: fakeToken });
       }

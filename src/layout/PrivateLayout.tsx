@@ -13,12 +13,18 @@ import { LogOut, Film } from 'lucide-react';
 import { useAuthActions } from '@/features/auth/store/auth.store';
 
 const PrivateLayout = () => {
-  const { logout } = useAuthActions();
+  const actions = useAuthActions();
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    logout();
-    navigate('/login');
+    if (actions && typeof actions.logout === 'function') {
+      actions.logout();
+      navigate('/login');
+    } else {
+      localStorage.removeItem('tenpo-auth-storage');
+      navigate('/login', { replace: true });
+      window.location.reload();
+    }
   };
 
   return (
