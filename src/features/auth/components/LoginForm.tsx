@@ -51,6 +51,7 @@ export const LoginForm = () => {
       navigate('/featured', { replace: true });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
+      localStorage.removeItem('tenpo-auth-storage');
       toast.error('Error de inicio de sesión', {
         description: error.message || 'No se pudo iniciar sesión. Verifica tus credenciales.',
       });
